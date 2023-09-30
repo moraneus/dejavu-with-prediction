@@ -1,0 +1,2 @@
+
+prop p : exists x . ( g(x) & ( P a(x) & P b(x) & P c(x) & P d(x) & P e(x) ) )

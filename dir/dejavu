@@ -1,0 +1,129 @@
+#!/bin/bash
+
+#
+# DejaVu - a tool for checking past time temporal logic properties in QTL against traces in CSV format.
+#
+# To use, call (after making executable with: chmod +x dejavu) as follows:
+#    Usage:
+#    dejavu --specfile=<filename> --logfile=<filename> [OPTIONS]
+#
+#    Options:
+#    -s, --specfile=<filename>           Path to the file containing the specification document. (Mandatory)
+#    -l, --logfile=<filename>            Path to the CSV log file to be analyzed. (Mandatory)
+#    -b, --bits=<numOfBits>              Number of bits for each variable in the BDD representation. (Default: 20 bits)
+#    -m, --mode=(debug|profile)          Set the output mode. (Default: None)
+#    -p, --prediction=<num>              Enable prediction and set the size of the prediction parameters. (Optional)
+#    -t, --prediction_type=(smart|brute) Specifies the prediction approach. (Default: smart)
+#    -e, --expected_verdict=(0|1)        Set the expected prediction verdict. If not specified, all possibilities will be predicted. (Optional)
+#    -c, --clear=(0|1)                   Clear generated files and folders. Set to '1' for cleaning. (Optional)
+
+
+for i in "$@"; do
+  echo "${i}"
+  case $i in
+    -s=*|--specfile=*)
+      SPECFILE="${i#*=}"
+      shift # past argument=value
+      ;;
+    -l=*|--logfile=*)
+      LOGFILE="${i#*=}"
+      shift # past argument=value
+      ;;
+    -b=*|--bits=*)
+      BITS="${i#*=}"
+      shift # past argument=value
+      ;;
+    -m=*|--mode=*)
+      MODE="${i#*=}"
+      shift # past argument=value
+      ;;
+    -p=*|--prediction=*)
+      PREDICTION="${i#*=}"
+      shift # past argument=value
+      ;;
+    -t=*|--prediction_type=*)
+      PREDICTION_TYPE="${i#*=}"
+      shift # past argument=value
+      ;;
+    -e=*|--expected_verdict=*)
+      EXPECTED_VERDICT="${i#*=}"
+      shift # past argument=value
+      ;;
+    -c=*|--clear=*)
+      CLEAR="${i#*=}"
+      shift # past argument=value
+      ;;
+    -*|--*)
+      echo "Unknown option $i"
+      exit 1
+      ;;
+    *)
+      ;;
+  esac
+done
+
+PARAMS_AS_STRING=""
+
+if [ -z "${SPECFILE}" ]; then               # Can't execute without specfile
+    echo "Specfile parameter is missing"
+    exit
+fi
+
+if [ -z "${LOGFILE}" ]; then               # Can't execute without logfile
+    echo "Logfile parameter is missing"
+    exit
+fi
+
+if [ -z "${BITS}" ]; then                   # Default number of bits per variable = 20
+    BITS=20
+fi
+
+PARAMS_AS_STRING+="--logfile ${LOGFILE} --bits ${BITS} "
+
+if [ -n "${MODE}" ]; then
+    PARAMS_AS_STRING+="--mode ${MODE} "
+fi
+
+if [ -n "${PREDICTION}" ]; then
+    PARAMS_AS_STRING+="--prediction ${PREDICTION} "
+fi
+
+if [ -n "${PREDICTION_TYPE}" ]; then
+    PARAMS_AS_STRING+="--prediction_type ${PREDICTION_TYPE} "
+fi
+
+if [ -n "${EXPECTED_VERDICT}" ]; then
+    PARAMS_AS_STRING+="--expected_verdict ${EXPECTED_VERDICT} "
+fi
+
+
+echo "#### Given Arguments: ${PARAMS_AS_STRING}"
+echo "BDD bits per variable = ${BITS}"
+
+DEJAVU=`dirname $0`
+OUTPUT="output"
+echo "Working directory: ${DEJAVU}"
+echo "Output directory: ${OUTPUT}"
+
+# Parse specification and synthesize monitor:
+java -cp $DEJAVU/dejavu.jar dejavu.Verify --specfile $SPECFILE --execution 1 | grep -v "Elapsed total"
+
+# Compile synthesized monitor:
+echo "Compiling synthesized monitor: ..."
+time scalac -cp .:$DEJAVU/dejavu.jar $OUTPUT/TraceMonitor.scala 2>&1 | grep -v "warning"
+
+# Run the compiled monitor on trace:
+echo ""
+echo "Verifying trace: ..."
+time scala -J-Xmx16g -cp .:$DEJAVU/dejavu.jar TraceMonitor $PARAMS_AS_STRING 2>&1\
+   | grep -v "Resizing" | grep -v "load BDD package" | grep -v "Garbage collection"
+
+
+# Cleaning Up:
+# ============
+if [ -n "${CLEAR}" ]; then
+   if [ "${CLEAR}"="1" ]; then
+       rm -rf $OUTPUT
+   fi
+fi
+rm *.class

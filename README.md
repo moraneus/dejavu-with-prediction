@@ -13,10 +13,11 @@ Version 3.0, Februar - 2023
   
 ## Overview
 
-DejaVu is a program written in Scala for monitoring event streams (traces) against temporal logic formulas. 
-The formulas are written in a first-order past time linear temporal logic, with the addition of macros and recursive rules. The logic also supports reasoning about time.
+[DejaVu](https://github.com/havelund/dejavu) is a program written in Scala for monitoring event streams (traces) against temporal logic formulas.
+The main formulas are written in a first-order past-time linear temporal logic, with the addition of macros and recursive rules. The logic also supports reasoning about time.
 DejaVu contributors are [Klaus Havelund](http://www.havelund.com), [Doron Peled](http://u.cs.biu.ac.il/~doronp) and [Dogan Ulus](https://www.linkedin.com/in/doganulus).
 iPRV DejaVu is an extension of DejaVu that supports prediction of the next k events.
+More details about DejaVu and how it operates can be found [here](https://github.com/havelund/dejavu).
 
 An example of a property in its most basic form is the following:
 
@@ -26,45 +27,56 @@ The property has the name `closeOnlyOpenFiles` and states that for any file `f`,
 
 The implementation uses BDDs (Binary Decision Diagrams) for representing assignments to quantified variables (such as `f` and `m` above).
 
-In this version of DejaVu we add the ability to predict the next `k` steps in 2 modes of prediction.
+In this version of iPRV DejaVu we add the ability to predict the next `k` steps in 2 modes of prediction.
+
+## System Requirements
+Before installing DejaVu, ensure that you have the following software installed on your system:
+* **Java 8**: DejaVu is implemented in Scala, which requires Java. Specifically, Java 8 is required. [Java 8 Installation Instructions](https://www.oracle.com/java/technologies/downloads/#java8)
 
 ## Installing DejaVu:
 
-The directly ``out`` contains files and directories useful for installing and running DejaVu:
+The directory [``dir``](https://github.com/moraneus/iPRV-DejaVu/tree/master/dir) contains files useful for installing and running DejaVu:
+* [`dejavu`](https://github.com/moraneus/iPRV-DejaVu/blob/master/dir/dejavu)                          : Script to run the system
+* [`dejavu.jar`](https://github.com/moraneus/iPRV-DejaVu/blob/master/dir/dejavu.jar)                  : Contain the dejavu.jar file
 
-* dejavu                          : script to run the system
-* artifacts                       : contain the iPRV-dejavu jar file
-* papers                          : a directory containing papers published about DejaVu
-* examples                        : an example directory containing properties and logs
+The directory [``out``](https://github.com/moraneus/iPRV-DejaVu/tree/master/out) contains useful examples for DejaVu:
+* [``examples``](https://github.com/moraneus/iPRV-DejaVu/tree/master/out/examples)                        : An example directory containing properties and logs (DejaVu + iPRV-DejaVu)
+* [``papers``](https://github.com/moraneus/iPRV-DejaVu/tree/master/out/papers)                            : A directory containing papers published about DejaVu and iPRV-DejaVu.
 
-DejaVu is implemented in Scala. In this version of iPRV-DejaVu we used Scala 2.11.12.
+DejaVu is implemented in Scala. In this version of iPRV-DejaVu we used [**Scala 2.11.12**](https://www.scala-lang.org/download/2.11.12.html).
 
-1. Install the Scala programming language if not already installed (https://www.scala-lang.org/download)
+1. Install the Scala programming language if not already installed ([**Scala 2.11.12** installation instructions](https://www.scala-lang.org/download/2.11.12.html)).
 2. Place the files ``dejavu`` and ``dejavu.jar`` mentioned above in some directory **DIR** (standing for the total path to this directory).
 3. cd to  **DIR** and make the script executable:
 
         chmod +x dejavu
-     
+
 4. Preferably define an alias in your shell profile to the dejavu script so it can be called from anywhere:
 
         alias dejavu=DIR/dejavu
+
         
 ## Running DejaVu
 
 The script is applied as follows:
 
-    dejavu (--specfile=<filename>) (--logfile=<filename>) [--bits=numOfBits] [--mode=(debug | profile)]
-          [--prediction=num] [--prediction_type=(smart | brute)] [--expected_verdict=(0 | 1)] [--clear=(0 | 1)]
+    Usage:
+    dejavu --specfile=<filename> --logfile=<filename> [OPTIONS]
 
     Options:
-        -s, --specfile          the path to a file containing the specification document. This is a mandatory field.
-        -l, --logfile           the path to a file containing the log in CSV format to be analyzed.
-        -b, --bits              number indicating how many bits should be assigned to each variable in the BDD representation. If nothing is specified, the default value is 20 bits.
-        -m, --mode              specifies output modes. by default no one is active.
-        -p, --prediction        indicates whether prediction is required, along with the size of the prediction parameters.
-        -t, --prediction_type   specifies prediction approach. by default smart approach is activated.
-        -e, --expected_verdict  specifies the expected prediction verdict (1=True, 0=False). By default the tool will predict all possibilities if not expected verdict has given.
-        -c, --clear             indicating whether to clear generated files and folder. value of '1' is for cleaning.
+    -s, --specfile=<filename>           Path to the file containing the specification document. (Mandatory)
+    -l, --logfile=<filename>            Path to the CSV log file to be analyzed. (Mandatory)
+    -b, --bits=<numOfBits>              Number of bits for each variable in the BDD representation. (Default: 20 bits)
+    -m, --mode=(debug|profile)          Set the output mode. (Default: None)
+    -p, --prediction=<num>              Enable prediction and set the size of the prediction parameters. (Optional)
+    -t, --prediction_type=(smart|brute) Specifies the prediction approach. (Default: smart)
+    -e, --expected_verdict=(0|1)        Set the expected prediction verdict. If not specified, all possibilities will be predicted. (Optional)
+    -c, --clear=(0|1)                   Clear generated files and folders. Set to '1' for cleaning. (Optional)
+    
+    Examples:
+    dejavu --specfile=spec.txt --logfile=log.csv
+    dejavu --specfile=spec.txt --logfile=log.csv --bits=16 --mode=debug --prediction=5 --prediction_type=brute --expected_verdict=1 --clear=1
+
 
 #### Some Execution Examples
 

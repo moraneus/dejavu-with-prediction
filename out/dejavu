@@ -5,18 +5,22 @@
 #
 # To use, call (after making executable with: chmod +x dejavu) as follows:
 #
-#   dejavu (--specfile=<filename>) (--logfile=<filename>) [--bits=numOfBits] [--mode=(debug | profile)]
-#          [--prediction=num] [--prediction_type=(smart | brute)] [--expected_verdict=(0 | 1)] [--clear=(0 | 1)]
+#    Usage:
+#    dejavu --specfile=<filename> --logfile=<filename> [OPTIONS]
 #
-#   Options:
-#     -s, --specfile          the path to a file containing the specification document. This is a mandatory field.
-#     -l, --logfile           the path to a file containing the log in CSV format to be analyzed.
-#     -b, --bits              number indicating how many bits should be assigned to each variable in the BDD representation. If nothing is specified, the default value is 20 bits.
-#     -m, --mode              specifies output modes. by default no one is active.
-#     -p, --prediction        indicates whether prediction is required, along with the size of the prediction parameters.
-#     -t, --prediction_type   specifies prediction approach. by default smart approach is activated.
-#     -e, --expected_verdict  specifies the expected prediction verdict (1=True, 0=False). By default the tool will predict all possibilities if not expected verdict has given.
-#     -c, --clear             indicating whether to clear generated files and folder. value of '1' is for cleaning.
+#    Options:
+#    -s, --specfile=<filename>           Path to the file containing the specification document. (Mandatory)
+#    -l, --logfile=<filename>            Path to the CSV log file to be analyzed. (Mandatory)
+#    -b, --bits=<numOfBits>              Number of bits for each variable in the BDD representation. (Default: 20 bits)
+#    -m, --mode=(debug|profile)          Set the output mode. (Default: None)
+#    -p, --prediction=<num>              Enable prediction and set the size of the prediction parameters. (Optional)
+#    -t, --prediction_type=(smart|brute) Specifies the prediction approach. (Default: smart)
+#    -e, --expected_verdict=(0|1)        Set the expected prediction verdict. If not specified, all possibilities will be predicted. (Optional)
+#    -c, --clear=(0|1)                   Clear generated files and folders. Set to '1' for cleaning. (Optional)
+
+    Examples:
+    dejavu --specfile=spec.txt --logfile=log.csv
+    dejavu --specfile=spec.txt --logfile=log.csv --bits=16 --mode=debug --prediction=5 --prediction_type=brute --expected_verdict=1 --clear=1
 
 
 for i in "$@"; do
